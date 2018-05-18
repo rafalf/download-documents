@@ -219,7 +219,7 @@ def append_result(dt, dn, fn, logger):
     existing_df = pd.read_csv(OUTPUT_CSV, converters={'FolderName': lambda x: str(x)})
     append_df = pd.DataFrame([[dt, dn, fn]], columns=["DocType", "DocName", "FolderName"])
     result = pd.concat([existing_df, append_df], ignore_index=True)
-    logger.info("\n" + result.to_string())
+    logger.info(result.tail(5))
     result.to_csv(OUTPUT_CSV, index=False)
 
 

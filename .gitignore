@@ -3,3 +3,7 @@ input.rafal.csv
 log.log
 .idea
 .idea/*
+download/*
+!download/.gitkeep
+results/*
+!results/.gitkeep
