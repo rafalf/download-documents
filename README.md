@@ -1,6 +1,6 @@
 ### Install:
 * [Python 3](https://www.python.org/downloads/release/python-363/)
-* start command prompt as Administrator and run this command: ```pip install -r requirement.txt```
+* start command prompt as Administrator, go to download-documents e.g. ```CD path_download-documents```  and run this command: ```pip install -r requirement.txt```
 
 ### Config:
 * rename ```config.sample.yaml``` to ```config.yaml``` and add user and password.
