@@ -123,6 +123,8 @@ def click_if_clickable(driver, element, logger):
         except (StaleElementReferenceException, WebDriverException) as err:
             logger.warning("(StaleElementReferenceException, WebDriverException) click_if_clickable failed to click")
             time.sleep(1)
+    else:
+        logger.error('click_if_clickable: failed')
 
 def click_by_css(driver, selector, logger, time_out=30):
     for _ in range(3):
@@ -192,7 +194,7 @@ def get_all_elements_by_css(driver, selector, logger):
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector)),
             'timed out on: %s' % selector)
     except Exception as e:
-        logger.info("err: %s", e)
+        logger.error("err: %s", e)
 
 
 def trk_nmbr():
