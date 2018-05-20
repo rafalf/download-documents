@@ -201,10 +201,10 @@ def trk_nmbr():
     return idles.values.tolist()
 
 
-def set_processed(doc_id):
+def set_processed(doc_id, status="processed"):
     df = pd.read_csv(INPUT_CSV, converters={'TrkNbr': lambda x: str(x)})
     print("[INFO] setting {} processed".format(doc_id))
-    df.loc[df['TrkNbr'] == doc_id, 'Status'] = "processed"
+    df.loc[df['TrkNbr'] == doc_id, 'Status'] = status
     df.to_csv(INPUT_CSV, index=False)
 
 
@@ -235,6 +235,9 @@ def clean_up_download(logger):
 
 def move_file(source, dest, logger):
 
+    # let it kick in
+    time.sleep(0.2)
+
     logger.info('checking downloaded file')
     for _ in range(60):
         af = os.listdir(source)
@@ -242,21 +245,27 @@ def move_file(source, dest, logger):
 
         if len(af) == 1:
             if not af[0].count("crdownload") and not af[0].count(".tmp"):
-                logger.info("downloaded: %s", af[0])
+                logger.info("download completed: %s", af[0])
                 break
             else:
-                sys.stdout.write('.')
-                sys.stdout.flush()
+                logger.info("being downloaded: %s", af[0])
                 time.sleep(1)
         else:
-            logger.error("incorrect number of files found")
+            logger.error("incorrect number of files found: %s", len(af))
+            clean_up_download(logger)
             return
     else:
-        logger.error("file not downloaded, listdir: %s", os.listdir(source))
+        logger.error("failed to download, listdir: %s", os.listdir(source))
+        clean_up_download(logger)
+        return
 
     try:
         copyfile(os.path.join(source, af[0]), os.path.join(dest, af[0]))
         logger.info('copied as: {}'.format(os.path.join(dest, af[0])))
+
+        if not os.path.exists(os.path.join(dest, af[0])):
+            logger.error("os.path.exists failed on: %s", os.path.join(dest, af[0]))
+            input("please enter and any key and press ENTER to continue ... ")
 
         os.remove(os.path.join(source, af[0]))
         logger.info('deleted: {}'.format(os.path.join(source, af[0])))
@@ -270,10 +279,11 @@ def download():
     conf = get_config()
     nmbrs = trk_nmbr()
     logger = get_logger()
+    fn = None
 
     clean_up_download(logger)
 
-    logger.info("found idle numbers: %s to process", nmbrs)
+    logger.info("found idle numbers (total: %s): to process %s", len(nmbrs), nmbrs)
 
     with get_driver() as driver:
 
@@ -334,10 +344,22 @@ def download():
 
                             fn = move_file(DOWN_PATH, folder_idx, logger)
 
+                            # break this page
+                            if not fn:
+                                break
+
                             append_result(doc_type.text.strip(), fn, item[0], logger)
 
-            logger.info("processed: %s", item[0])
-            set_processed(item[0])
+                        # break this item (number)
+                        if not fn:
+                            break
+
+            logger.info("processed: %s with result: %s", item[0], fn)
+
+            if fn:
+                set_processed(item[0])
+            else:
+                set_processed(item[0], "error")
 
             driver.get(search_url)
 
