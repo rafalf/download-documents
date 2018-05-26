@@ -39,7 +39,7 @@ LOGGING_CONFIG = {
             'formatter': 'brief',
             'filename': 'log.log',
             'maxBytes': 1024*1024,
-            'backupCount': '3',
+            'backupCount': 3,
         },
     },
     'loggers': {
